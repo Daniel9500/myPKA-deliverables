@@ -283,6 +283,20 @@
       padding: 1px 4px;
       border-radius: 3px;
     }
+    .sync-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sync-section-header .section-title { margin-bottom: 0; }
+    .sync-cfg-label { font-size: 0.78rem; color: #9ca3af; }
+    .btn-link {
+      background: none; border: none;
+      color: #6366f1; font-size: 0.78rem;
+      cursor: pointer; padding: 0 0 0 8px;
+      text-decoration: underline;
+    }
+    .btn-link:hover { color: #4f46e5; }
 
     @media (max-width: 680px) {
       .sync-row { grid-template-columns: 1fr 1fr; }
@@ -497,28 +511,36 @@
 
   <!-- Supabase sync -->
   <div class="section">
-    <div class="section-title">Synkronisering</div>
-    <div class="sync-row">
-      <div>
-        <label for="sb-url">Supabase Project URL</label>
-        <input type="url" id="sb-url" placeholder="https://xxxx.supabase.co">
-      </div>
-      <div>
-        <label for="sb-key">Anon key</label>
-        <input type="password" id="sb-key" placeholder="eyJ…">
-      </div>
-      <div>
-        <label>&nbsp;</label>
-        <button type="button" class="btn-primary" onclick="saveSupabaseConfig()">Gem &amp; synk</button>
+    <div class="sync-section-header">
+      <div class="section-title">Synkronisering</div>
+      <div id="sync-cfg-banner" style="display:none">
+        <span class="sync-cfg-label">Supabase konfigureret</span>
+        <button type="button" class="btn-link" onclick="toggleSyncConfig()">Rediger</button>
       </div>
     </div>
-    <div class="sync-hint">
-      <strong>Opret tabeller i Supabase SQL Editor:</strong><br>
-      <code>create table readings (id uuid primary key, type text not null, date date not null, value numeric not null, created_at timestamptz default now());</code><br>
-      <code>create table prices (singleton int primary key default 1, fjernvarme numeric default 0, el numeric default 0, vand numeric default 0, updated_at timestamptz default now());</code><br>
-      <code>create policy "allow all" on readings for all using (true) with check (true);</code><br>
-      <code>create policy "allow all" on prices  for all using (true) with check (true);</code><br>
-      Aktiver RLS på begge tabeller i Table Editor, eller kør: <code>alter table readings enable row level security; alter table prices enable row level security;</code>
+    <div id="sync-config-panel" style="margin-top:12px">
+      <div class="sync-row">
+        <div>
+          <label for="sb-url">Supabase Project URL</label>
+          <input type="url" id="sb-url" placeholder="https://xxxx.supabase.co">
+        </div>
+        <div>
+          <label for="sb-key">Anon key</label>
+          <input type="password" id="sb-key" placeholder="eyJ…">
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button type="button" class="btn-primary" onclick="saveSupabaseConfig()">Gem &amp; synk</button>
+        </div>
+      </div>
+      <div class="sync-hint">
+        <strong>Opret tabeller i Supabase SQL Editor:</strong><br>
+        <code>create table readings (id uuid primary key, type text not null, date date not null, value numeric not null, created_at timestamptz default now());</code><br>
+        <code>create table prices (singleton int primary key default 1, fjernvarme numeric default 0, el numeric default 0, vand numeric default 0, updated_at timestamptz default now());</code><br>
+        <code>create policy "allow all" on readings for all using (true) with check (true);</code><br>
+        <code>create policy "allow all" on prices  for all using (true) with check (true);</code><br>
+        Aktiver RLS på begge tabeller i Table Editor, eller kør: <code>alter table readings enable row level security; alter table prices enable row level security;</code>
+      </div>
     </div>
   </div>
 
@@ -676,13 +698,25 @@
     if (!url || !key) { alert('Udfyld både URL og anon-nøgle.'); return; }
     localStorage.setItem(SUPABASE_KEY, JSON.stringify({ url, key }));
     _sbClient = null;
+    setSyncConfigVisible(false);
     await syncFromSupabase();
+  }
+
+  function setSyncConfigVisible(visible) {
+    document.getElementById('sync-config-panel').style.display = visible ? '' : 'none';
+    document.getElementById('sync-cfg-banner').style.display  = visible ? 'none' : '';
+  }
+
+  function toggleSyncConfig() {
+    const panel = document.getElementById('sync-config-panel');
+    setSyncConfigVisible(panel.style.display === 'none');
   }
 
   function initSupabaseInputs() {
     const { url, key } = loadSbCfg();
     if (url) document.getElementById('sb-url').value = url;
     if (key) document.getElementById('sb-key').value = key;
+    setSyncConfigVisible(!url || !key);
   }
 
   async function syncFromSupabase() {

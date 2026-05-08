@@ -266,8 +266,8 @@
       align-items: end;
     }
     .sync-hint {
-      margin-top: 14px;
-      padding: 12px 14px;
+      margin-top: 12px;
+      padding: 8px 12px;
       background: #f8fafc;
       border: 1px solid #e5e7eb;
       border-radius: 8px;
@@ -275,6 +275,15 @@
       color: #6b7280;
       line-height: 1.7;
     }
+    .sync-hint summary {
+      cursor: pointer;
+      user-select: none;
+      color: #9ca3af;
+      font-size: 0.72rem;
+      list-style: none;
+    }
+    .sync-hint summary::before { content: '▸ '; }
+    .sync-hint[open] summary::before { content: '▾ '; }
     .sync-hint code {
       font-family: 'SF Mono', 'Fira Code', monospace;
       font-size: 0.68rem;
@@ -533,14 +542,16 @@
           <button type="button" class="btn-primary" onclick="saveSupabaseConfig()">Gem &amp; synk</button>
         </div>
       </div>
-      <div class="sync-hint">
-        <strong>Opret tabeller i Supabase SQL Editor:</strong><br>
-        <code>create table readings (id uuid primary key, type text not null, date date not null, value numeric not null, created_at timestamptz default now());</code><br>
-        <code>create table prices (singleton int primary key default 1, fjernvarme numeric default 0, el numeric default 0, vand numeric default 0, updated_at timestamptz default now());</code><br>
-        <code>create policy "allow all" on readings for all using (true) with check (true);</code><br>
-        <code>create policy "allow all" on prices  for all using (true) with check (true);</code><br>
-        Aktiver RLS på begge tabeller i Table Editor, eller kør: <code>alter table readings enable row level security; alter table prices enable row level security;</code>
-      </div>
+      <details class="sync-hint">
+        <summary>Vis opsætningsvejledning (SQL)</summary>
+        <div style="margin-top:8px">
+          <code>create table readings (id uuid primary key, type text not null, date date not null, value numeric not null, created_at timestamptz default now());</code><br>
+          <code>create table prices (singleton int primary key default 1, fjernvarme numeric default 0, el numeric default 0, vand numeric default 0, updated_at timestamptz default now());</code><br>
+          <code>create policy "allow all" on readings for all using (true) with check (true);</code><br>
+          <code>create policy "allow all" on prices  for all using (true) with check (true);</code><br>
+          Aktiver RLS: <code>alter table readings enable row level security; alter table prices enable row level security;</code>
+        </div>
+      </details>
     </div>
   </div>
 

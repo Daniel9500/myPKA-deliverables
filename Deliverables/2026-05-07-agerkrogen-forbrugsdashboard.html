@@ -488,10 +488,12 @@
   // ── Supabase helpers ──────────────────────────────────────────
   const loadSbCfg = () => { try { return JSON.parse(localStorage.getItem(SUPABASE_KEY)) || {}; } catch { return {}; } };
 
+  let _sbClient = null;
   function getSb() {
     const { url, key } = loadSbCfg();
     if (!url || !key) return null;
-    return supabase.createClient(url, key);
+    if (!_sbClient) _sbClient = supabase.createClient(url, key);
+    return _sbClient;
   }
 
   function setSyncStatus(state) {
@@ -513,6 +515,7 @@
     const key = document.getElementById('sb-key').value.trim();
     if (!url || !key) { alert('Udfyld både URL og anon-nøgle.'); return; }
     localStorage.setItem(SUPABASE_KEY, JSON.stringify({ url, key }));
+    _sbClient = null;
     await syncFromSupabase();
   }
 

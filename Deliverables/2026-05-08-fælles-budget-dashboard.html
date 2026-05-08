@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agerkrogen 8 — Budget 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #f0f2f5;
+      color: #1c1c2e;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .site-header-left h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; }
+    .site-header-left p  { font-size: 0.78rem; opacity: 0.45; margin-top: 3px; }
+    .site-header-right {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .badge {
+      background: rgba(255,255,255,.1);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: #a5b4fc;
+    }
+
+    /* ── Layout ── */
+    .container { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+
+    /* ── Section title ── */
+    .section-heading {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: #9ca3af;
+      margin: 36px 0 14px;
+    }
+    .section-heading:first-child { margin-top: 0; }
+
+    /* ── Grid helpers ── */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .grid-chart { display: grid; grid-template-columns: 1fr 1.6fr; gap: 14px; align-items: start; }
+
+    /* ── Card base ── */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 22px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.04);
+    }
+
+    /* ── Income cards ── */
+    .income-card { border-top: 4px solid transparent; }
+    .income-card.daniel { border-top-color: #6366f1; }
+    .income-card.louise { border-top-color: #ec4899; }
+    .income-card.total  { border-top-color: #10b981; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); }
+
+    .card-eyebrow {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: #9ca3af;
+      margin-bottom: 8px;
+    }
+    .income-card.daniel .card-eyebrow { color: #6366f1; }
+    .income-card.louise .card-eyebrow { color: #ec4899; }
+    .income-card.total  .card-eyebrow { color: #059669; }
+
+    .card-big { font-size: 2.1rem; font-weight: 800; line-height: 1; letter-spacing: -.03em; }
+    .card-unit { font-size: 0.8rem; color: #9ca3af; font-weight: 400; margin-left: 4px; }
+    .card-sub  { font-size: 0.75rem; color: #6b7280; margin-top: 8px; }
+    .card-sub strong { color: #374151; }
+
+    /* ── Buffer hero ── */
+    .buffer-hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #312e81 100%);
+      border-radius: 16px;
+      padding: 28px 26px;
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(99,102,241,.25);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .buffer-hero-left {}
+    .buffer-hero-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: #a5b4fc;
+      margin-bottom: 10px;
+    }
+    .buffer-hero-amount {
+      font-size: 2.8rem;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: 1;
+    }
+    .buffer-hero-amount span { font-size: 1.1rem; font-weight: 400; color: #a5b4fc; margin-left: 6px; }
+    .buffer-hero-sub {
+      font-size: 0.75rem;
+      color: #818cf8;
+      margin-top: 10px;
+    }
+    .buffer-hero-pills { display: flex; flex-direction: column; gap: 8px; }
+    .pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      background: rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 0.75rem;
+      min-width: 180px;
+    }
+    .pill-label { color: #c7d2fe; }
+    .pill-value { font-weight: 700; color: #fff; }
+
+    /* ── Donut chart card ── */
+    .chart-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.04);
+      display: flex;
+      flex-direction: column;
+    }
+    .chart-card-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 16px;
+    }
+    .chart-wrap { position: relative; width: 100%; max-width: 220px; margin: 0 auto; }
+
+    /* ── Legend ── */
+    .legend { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+    }
+    .legend-left { display: flex; align-items: center; gap: 8px; color: #374151; }
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .legend-val { font-weight: 700; color: #1c1c2e; }
+
+    /* ── Expense table card ── */
+    .expense-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 22px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.04);
+    }
+    .expense-card-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .title-chip {
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .chip-fixed   { background: #ede9fe; color: #6d28d9; }
+    .chip-variable{ background: #fef3c7; color: #92400e; }
+    .chip-savings { background: #d1fae5; color: #065f46; }
+
+    .expense-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.78rem;
+    }
+    .expense-row:last-child { border-bottom: none; }
+    .expense-name { color: #374151; }
+    .expense-note { font-size: 0.67rem; color: #9ca3af; margin-top: 2px; }
+    .expense-amount { font-weight: 700; color: #1c1c2e; white-space: nowrap; }
+    .expense-amount.muted { color: #9ca3af; font-weight: 500; }
+    .expense-total {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0 0;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #1c1c2e;
+      margin-top: 4px;
+    }
+
+    /* ── Envelope bars ── */
+    .envelope-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 22px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.04);
+    }
+    .envelope-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 18px;
+    }
+    .envelope-item { margin-bottom: 16px; }
+    .envelope-item:last-child { margin-bottom: 0; }
+    .envelope-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.78rem;
+      margin-bottom: 6px;
+    }
+    .envelope-label { color: #374151; font-weight: 500; }
+    .envelope-amounts { font-size: 0.7rem; color: #9ca3af; }
+    .envelope-amounts strong { color: #374151; font-weight: 700; }
+    .bar-track {
+      height: 7px;
+      background: #f3f4f6;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .6s ease;
+    }
+
+    /* ── Investment tracker ── */
+    .invest-card {
+      background: linear-gradient(135deg, #fafafa 0%, #f5f3ff 100%);
+      border: 1.5px solid #ede9fe;
+      border-radius: 16px;
+      padding: 22px 20px;
+    }
+    .invest-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #5b21b6;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .invest-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid #ede9fe;
+      font-size: 0.78rem;
+    }
+    .invest-row:last-child { border-bottom: none; }
+    .invest-month { color: #374151; }
+    .invest-amount { font-weight: 700; color: #6d28d9; }
+    .invest-total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0 0;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #4c1d95;
+    }
+    .invest-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #ede9fe;
+      color: #6d28d9;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .dot-pending { width: 6px; height: 6px; border-radius: 50%; background: #a78bfa; display: inline-block; }
+
+    /* ── Balance strip ── */
+    .balance-strip {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.04);
+    }
+    .balance-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      font-size: 0.8rem;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .balance-row:last-child { border-bottom: none; }
+    .balance-label { color: #6b7280; }
+    .balance-amount { font-weight: 600; color: #374151; }
+    .balance-amount.negative { color: #ef4444; }
+    .balance-amount.positive { color: #10b981; font-weight: 800; font-size: 0.95rem; }
+    .balance-divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 4px 0;
+    }
+
+    /* ── Renovation log ── */
+    .renov-hero {
+      background: linear-gradient(135deg, #1c1917 0%, #44403c 100%);
+      border-radius: 16px;
+      padding: 24px 26px;
+      color: #fff;
+      display: flex;
+      gap: 32px;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,.2);
+      flex-wrap: wrap;
+    }
+    .renov-stat { flex: 1; min-width: 120px; }
+    .renov-stat-label {
+      font-size: .63rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: #a8a29e;
+      margin-bottom: 6px;
+    }
+    .renov-stat-value {
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      line-height: 1;
+    }
+    .renov-stat-value.highlight { color: #fbbf24; }
+    .renov-stat-sub { font-size: .68rem; color: #78716c; margin-top: 5px; }
+
+    .renov-form-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 22px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.04);
+    }
+    .renov-form-title {
+      font-size: .75rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 16px;
+    }
+    .renov-form-grid {
+      display: grid;
+      grid-template-columns: 130px 1fr 2fr 110px 160px auto;
+      gap: 10px;
+      align-items: end;
+    }
+    @media (max-width: 860px) {
+      .renov-form-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .renov-form-group { display: flex; flex-direction: column; gap: 5px; }
+    .renov-label {
+      font-size: .63rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: #9ca3af;
+    }
+    .renov-input, .renov-select {
+      padding: 8px 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: .82rem;
+      color: #1c1c2e;
+      background: #fafafa;
+      transition: border-color .15s, box-shadow .15s;
+      width: 100%;
+    }
+    .renov-input:focus, .renov-select:focus {
+      outline: none;
+      border-color: #d97706;
+      box-shadow: 0 0 0 3px rgba(217,119,6,.12);
+      background: #fff;
+    }
+    .renov-btn {
+      padding: 8px 18px;
+      background: #1c1917;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: .82rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s;
+      align-self: end;
+    }
+    .renov-btn:hover { background: #292524; }
+
+    .renov-table-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 22px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.04);
+    }
+    .renov-table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .renov-table-title { font-size: .75rem; font-weight: 700; color: #374151; }
+    .renov-clear-btn {
+      font-size: .65rem;
+      color: #9ca3af;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 3px 8px;
+      border-radius: 6px;
+      transition: background .15s, color .15s;
+    }
+    .renov-clear-btn:hover { background: #fee2e2; color: #ef4444; }
+
+    .renov-table { width: 100%; border-collapse: collapse; font-size: .76rem; }
+    .renov-table th {
+      text-align: left;
+      font-size: .63rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: #9ca3af;
+      padding: 0 8px 10px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .renov-table td {
+      padding: 9px 8px;
+      border-bottom: 1px solid #f9fafb;
+      color: #374151;
+      vertical-align: middle;
+    }
+    .renov-table tr:last-child td { border-bottom: none; }
+    .renov-table .amount-cell { font-weight: 700; color: #1c1c2e; text-align: right; }
+    .renov-table .del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #d1d5db;
+      font-size: .9rem;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color .15s, background .15s;
+    }
+    .renov-table .del-btn:hover { color: #ef4444; background: #fee2e2; }
+    .renov-table .konto-badge {
+      font-size: .6rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+    .renov-empty {
+      text-align: center;
+      padding: 28px 0;
+      color: #9ca3af;
+      font-size: .75rem;
+    }
+    .renov-total-row td {
+      border-top: 2px solid #e5e7eb;
+      font-weight: 800;
+      padding-top: 12px;
+      color: #1c1c2e;
+    }
+
+    .renov-tasks-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 22px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.04);
+    }
+    .renov-tasks-title { font-size: .75rem; font-weight: 700; color: #374151; margin-bottom: 16px; }
+    .task-group-label {
+      font-size: .62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: #9ca3af;
+      margin: 12px 0 6px;
+    }
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid #f9fafb;
+      font-size: .76rem;
+      color: #374151;
+    }
+    .task-item:last-child { border-bottom: none; }
+    .task-check {
+      width: 15px; height: 15px;
+      border: 2px solid #d1d5db;
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background: #fff;
+      position: relative;
+      transition: background .15s, border-color .15s;
+    }
+    .task-check:checked {
+      background: #10b981;
+      border-color: #10b981;
+    }
+    .task-check:checked::after {
+      content: '';
+      position: absolute;
+      left: 3px; top: 1px;
+      width: 5px; height: 8px;
+      border: 2px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(40deg);
+    }
+    .task-urgent { color: #ef4444; font-weight: 600; }
+    .task-note { font-size: .65rem; color: #9ca3af; display: block; margin-top: 1px; }
+
+    /* ── Footer note ── */
+    .footer-note {
+      text-align: center;
+      font-size: 0.68rem;
+      color: #9ca3af;
+      margin-top: 40px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 720px) {
+      .grid-3, .grid-2, .grid-chart { grid-template-columns: 1fr; }
+      .buffer-hero { flex-direction: column; }
+      .pill { min-width: unset; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-left">
+    <h1>Agerkrogen 8 — Familiebudget</h1>
+    <p>Daniel &amp; Louise · Hobro · Opdateret 2026-05-08</p>
+  </div>
+  <div class="site-header-right">
+    <span class="badge">Garanteret indkomst</span>
+    <span class="badge">2026</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ── INDKOMST ── -->
+  <p class="section-heading">Månedlig indkomst (netto)</p>
+  <div class="grid-3">
+
+    <div class="card income-card daniel">
+      <div class="card-eyebrow">Daniel · Porttechnic</div>
+      <div class="card-big">22.350<span class="card-unit">kr</span></div>
+      <div class="card-sub">Brutto 36.000 kr · AM-bidrag 8% + skat ~37,5%</div>
+    </div>
+
+    <div class="card income-card louise">
+      <div class="card-eyebrow">Louise · Garanteret grundløn</div>
+      <div class="card-big">17.500<span class="card-unit">kr</span></div>
+      <div class="card-sub">Brutto 29.000 kr · overtid/variabelt oveni</div>
+    </div>
+
+    <div class="card income-card total">
+      <div class="card-eyebrow">Samlet garanteret</div>
+      <div class="card-big">39.850<span class="card-unit">kr</span></div>
+      <div class="card-sub">Med overtid typisk <strong>44.000–47.000 kr</strong></div>
+    </div>
+
+  </div>
+
+  <!-- ── MÅNEDLIG BUFFER HERO ── -->
+  <p class="section-heading">Månedlig balance</p>
+  <div class="buffer-hero">
+    <div class="buffer-hero-left">
+      <div class="buffer-hero-label">Månedlig buffer — garanteret minimum</div>
+      <div class="buffer-hero-amount">+7.025<span>kr/md</span></div>
+      <div class="buffer-hero-sub">Overtid/variabelt (+4.500–7.500 kr) → renovering &amp; ekstra investering</div>
+    </div>
+    <div class="buffer-hero-pills">
+      <div class="pill">
+        <span class="pill-label">Indkomst</span>
+        <span class="pill-value">39.850 kr</span>
+      </div>
+      <div class="pill">
+        <span class="pill-label">Fast allokering</span>
+        <span class="pill-value">−26.425 kr</span>
+      </div>
+      <div class="pill">
+        <span class="pill-label">Faste abonnementer</span>
+        <span class="pill-value">−3.100 kr</span>
+      </div>
+      <div class="pill">
+        <span class="pill-label">Variable kuverter</span>
+        <span class="pill-value">−3.100 kr</span>
+      </div>
+      <div class="pill">
+        <span class="pill-label">Hus-el (Vindstød)</span>
+        <span class="pill-value">−200 kr</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BUDGET FORDELING CHART + BALANCE ── -->
+  <p class="section-heading">Budgetfordeling</p>
+  <div class="grid-chart">
+
+    <div class="chart-card">
+      <div class="chart-card-title">Fordeling af 39.850 kr</div>
+      <div class="chart-wrap">
+        <canvas id="donutChart"></canvas>
+      </div>
+      <div class="legend" id="donutLegend"></div>
+    </div>
+
+    <div class="balance-strip">
+      <div style="font-size:.75rem;font-weight:700;color:#374151;margin-bottom:14px;">Detaljeret månedssaldo</div>
+
+      <div class="balance-row">
+        <span class="balance-label">Garanteret indkomst</span>
+        <span class="balance-amount">+ 39.850 kr</span>
+      </div>
+
+      <div style="height:8px;"></div>
+      <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;padding:4px 0 6px;">Fast allokering fra lønkonto</div>
+
+      <div class="balance-row">
+        <span class="balance-label">→ Budgetkonto (regninger)</span>
+        <span class="balance-amount negative">− 15.000 kr</span>
+      </div>
+      <div class="balance-row">
+        <span class="balance-label">→ Madkonto</span>
+        <span class="balance-amount negative">− 5.000 kr</span>
+      </div>
+      <div class="balance-row">
+        <span class="balance-label">→ Aldersopsparing</span>
+        <span class="balance-amount negative">− 425 kr</span>
+      </div>
+      <div class="balance-row">
+        <span class="balance-label">→ Investering (Nordnet-pot)</span>
+        <span class="balance-amount negative">− 2.000 kr</span>
+      </div>
+
+      <div style="height:8px;"></div>
+      <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;padding:4px 0 6px;">Faste udgifter direkte fra lønkonto</div>
+
+      <div class="balance-row">
+        <span class="balance-label">Telenor + Himmerland + streaming m.m.</span>
+        <span class="balance-amount negative">− 3.100 kr</span>
+      </div>
+      <div class="balance-row">
+        <span class="balance-label">Vindstød hus-el (kvartalsvis/md)</span>
+        <span class="balance-amount negative">− 200 kr</span>
+      </div>
+
+      <div style="height:8px;"></div>
+      <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;padding:4px 0 6px;">Variable kuverter</div>
+
+      <div class="balance-row">
+        <span class="balance-label">Restauranter / takeaway</span>
+        <span class="balance-amount negative">− 1.000 kr</span>
+      </div>
+      <div class="balance-row">
+        <span class="balance-label">Tøj og online shopping</span>
+        <span class="balance-amount negative">− 1.000 kr</span>
+      </div>
+      <div class="balance-row">
+        <span class="balance-label">Bil / sundhed / diverse</span>
+        <span class="balance-amount negative">− 1.100 kr</span>
+      </div>
+
+      <div style="height:12px;border-top:2px solid #e5e7eb;margin-top:8px;"></div>
+      <div class="balance-row" style="padding-top:12px;">
+        <span class="balance-label" style="font-weight:700;color:#1c1c2e;">Månedlig buffer</span>
+        <span class="balance-amount positive">+ 7.025 kr</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── FASTE UDGIFTER ── -->
+  <p class="section-heading">Faste udgifter</p>
+  <div class="grid-2">
+
+    <div class="expense-card">
+      <div class="expense-card-title">
+        Budgetkonto — regninger
+        <span class="title-chip chip-fixed">Fast</span>
+      </div>
+
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Realkreditlån (Totalkredit)</div>
+          <div class="expense-note">Kvartalsvis ~17.241 kr</div>
+        </div>
+        <div class="expense-amount">5.747 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Forbrugslån (1644652072)</div>
+        </div>
+        <div class="expense-amount">1.670 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Fagforening × 2 (DET FAGLIGE HUS)</div>
+          <div class="expense-note">607 kr pr. person</div>
+        </div>
+        <div class="expense-amount">1.214 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Sygeforsikringen Danmark</div>
+        </div>
+        <div class="expense-amount">435 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Fjernvarme (Hobro Varmeværk)</div>
+          <div class="expense-note">~4.480 kr hver 2. måned</div>
+        </div>
+        <div class="expense-amount">2.240 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Vindstød (hus-el)</div>
+          <div class="expense-note">~600 kr kvartalsvis · ~153 kWh/md</div>
+        </div>
+        <div class="expense-amount">200 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Børnebidrag (Sebastian)</div>
+        </div>
+        <div class="expense-amount">1.300 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Børneopsparing + konfirmationsopsp.</div>
+        </div>
+        <div class="expense-amount">250 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Danica Pension (årsandel)</div>
+        </div>
+        <div class="expense-amount">180 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Låneforsikringer (årsandel)</div>
+        </div>
+        <div class="expense-amount">867 kr</div>
+      </div>
+      <div class="expense-total">
+        <span>Total budgetkonto</span>
+        <span>~14.100 kr</span>
+      </div>
+    </div>
+
+    <div class="expense-card">
+      <div class="expense-card-title">
+        Lønkonto — løbende faste
+        <span class="title-chip chip-fixed">Fast</span>
+      </div>
+
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Tesla-opladning (el til bil)</div>
+          <div class="expense-note">Varierer med kørsel</div>
+        </div>
+        <div class="expense-amount muted">400–900 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Telenor (2 linjer)</div>
+        </div>
+        <div class="expense-amount">~450 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Himmerland Forsikring (bil + hus)</div>
+        </div>
+        <div class="expense-amount">1.150 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Flexii streaming × 2</div>
+        </div>
+        <div class="expense-amount">120 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Hobro Idræetscenter</div>
+        </div>
+        <div class="expense-amount">289 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">AI-abonnementer (Claude, Suno, Abacus)</div>
+        </div>
+        <div class="expense-amount">350 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Netlify + Google Cloud</div>
+        </div>
+        <div class="expense-amount">65 kr</div>
+      </div>
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Freetrailer</div>
+        </div>
+        <div class="expense-amount">49 kr</div>
+      </div>
+      <div class="expense-total">
+        <span>Total lønkonto (faste)</span>
+        <span>~2.850–3.350 kr</span>
+      </div>
+
+      <div style="margin-top:20px;">
+        <div class="expense-card-title" style="margin-top:0;">
+          Opsparing &amp; investering
+          <span class="title-chip chip-savings">Opsparing</span>
+        </div>
+        <div class="expense-row">
+          <div class="expense-name">Aldersopsparing</div>
+          <div class="expense-amount">425 kr</div>
+        </div>
+        <div class="expense-row">
+          <div class="expense-name">Investering (Nordnet-pot)</div>
+          <div class="expense-amount">2.000 kr</div>
+        </div>
+        <div class="expense-row">
+          <div class="expense-name">Børne- &amp; konfirmationsopsparing</div>
+          <div class="expense-amount">250 kr</div>
+        </div>
+        <div class="expense-total">
+          <span>Total opsparing/investering</span>
+          <span>2.675 kr</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── VARIABLE KUVERTER ── -->
+  <p class="section-heading">Variable kuverter — månedlig ramme</p>
+  <div class="grid-2">
+
+    <div class="envelope-card">
+      <div class="envelope-title">Kuverter med budget-ramme <span class="title-chip chip-variable" style="font-size:.6rem;padding:2px 8px;border-radius:20px;">Variabelt</span></div>
+
+      <div class="envelope-item">
+        <div class="envelope-header">
+          <span class="envelope-label">Restauranter / takeaway</span>
+          <span class="envelope-amounts">Nuværende ~<strong>800–1.500</strong> · Ramme <strong>1.000 kr</strong></span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:85%;background:#f97316;"></div>
+        </div>
+      </div>
+
+      <div class="envelope-item">
+        <div class="envelope-header">
+          <span class="envelope-label">Tøj og online shopping</span>
+          <span class="envelope-amounts">Nuværende ~<strong>1.000–2.500</strong> · Ramme <strong>1.000 kr</strong></span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:100%;background:#f59e0b;"></div>
+        </div>
+      </div>
+
+      <div class="envelope-item">
+        <div class="envelope-header">
+          <span class="envelope-label">Bil (vask, parkering, øvrig)</span>
+          <span class="envelope-amounts">Nuværende ~<strong>200</strong> · Ramme <strong>300 kr</strong></span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:66%;background:#84cc16;"></div>
+        </div>
+      </div>
+
+      <div class="envelope-item">
+        <div class="envelope-header">
+          <span class="envelope-label">Sundhed og apotek</span>
+          <span class="envelope-amounts">Nuværende ~<strong>200–500</strong> · Ramme <strong>300 kr</strong></span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:70%;background:#06b6d4;"></div>
+        </div>
+      </div>
+
+      <div class="envelope-item">
+        <div class="envelope-header">
+          <span class="envelope-label">Diverse</span>
+          <span class="envelope-amounts">Ramme <strong>500 kr</strong></span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:40%;background:#8b5cf6;"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding-top:12px;border-top:1px solid #f3f4f6;display:flex;justify-content:space-between;font-size:.78rem;font-weight:700;color:#374151;">
+        <span>Total variabelt</span>
+        <span>3.100 kr</span>
+      </div>
+    </div>
+
+    <div class="envelope-card">
+      <div class="envelope-title">Dagligvarer — mad &amp; husstand</div>
+
+      <div class="expense-row">
+        <div>
+          <div class="expense-name">Madkonto (Netto, REMA, LIDL, Bilka)</div>
+          <div class="expense-note">Fast overf. 5.000 kr/md — typisk forbrug 4.000–6.000</div>
+        </div>
+        <div class="expense-amount">5.000 kr</div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <div class="envelope-title">Renovering — løbende pot</div>
+        <div class="expense-row">
+          <div>
+            <div class="expense-name">Harald Nyborg · Jem&amp;Fix · Bauhaus</div>
+            <div class="expense-note">Ingen fast ramme — logges i renovering-udgifter-log</div>
+          </div>
+          <div class="expense-amount muted">Variabelt</div>
+        </div>
+        <div class="expense-row">
+          <div>
+            <div class="expense-name">Jan–maj 2026 estimat</div>
+          </div>
+          <div class="expense-amount muted">~20–40.000 kr</div>
+        </div>
+        <div style="margin-top:12px;background:#fef3c7;border-radius:10px;padding:10px 12px;font-size:.72rem;color:#92400e;line-height:1.5;">
+          <strong>Anbefaling:</strong> Overtidsindkomst (+4.500–7.500 kr/md) allokeres primært her. I gode måneder øges investering til 3.000–4.000 kr.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── INVESTERING POT ── -->
+  <p class="section-heading">Investering — Nordnet-pot</p>
+  <div class="grid-2">
+
+    <div class="invest-card">
+      <div class="invest-title">
+        Akkumuleret investeringspot
+        <span class="invest-status"><span class="dot-pending"></span>Afventer oprettelse</span>
+      </div>
+
+      <div class="invest-row">
+        <span class="invest-month">Maj 2026</span>
+        <span class="invest-amount">2.000 kr</span>
+      </div>
+      <div class="invest-row" style="opacity:.4;">
+        <span class="invest-month">Jun 2026</span>
+        <span class="invest-amount">—</span>
+      </div>
+      <div class="invest-row" style="opacity:.4;">
+        <span class="invest-month">Jul 2026</span>
+        <span class="invest-amount">—</span>
+      </div>
+      <div class="invest-row" style="opacity:.4;">
+        <span class="invest-month">Aug 2026</span>
+        <span class="invest-amount">—</span>
+      </div>
+
+      <div class="invest-total-row">
+        <span>Total øremærket</span>
+        <span>2.000 kr</span>
+      </div>
+    </div>
+
+    <div class="card" style="background:linear-gradient(135deg,#fafafa,#f0fdf4);border:1.5px solid #d1fae5;">
+      <div style="font-size:.75rem;font-weight:700;color:#059669;margin-bottom:14px;">Opsparingshistorik — hvad er nyt</div>
+      <div class="expense-row">
+        <span class="expense-name">Opsparing før</span>
+        <span class="expense-amount muted">675 kr/md</span>
+      </div>
+      <div class="expense-row">
+        <span class="expense-name">Opsparing nu (inkl. investering)</span>
+        <span class="expense-amount" style="color:#059669;">2.675 kr/md</span>
+      </div>
+      <div class="expense-row">
+        <span class="expense-name">Stigning</span>
+        <span class="expense-amount" style="color:#10b981;font-size:.9rem;">+297 %</span>
+      </div>
+      <div style="margin-top:16px;background:#dcfce7;border-radius:10px;padding:10px 12px;font-size:.72rem;color:#065f46;line-height:1.5;">
+        <strong>Næste skridt:</strong> Opret Nordnet-konto → vælg globalt aktieindeks → sæt MånedsOpsparing op automatisk.<br>
+        Overvej <strong>aktiesparekonto</strong> (18% skat, maks 135.900 kr/år) vs. frie midler.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── RENOVERINGSLOG ── -->
+  <p class="section-heading">Renovering — udgiftslog</p>
+
+  <!-- Hero stats -->
+  <div class="renov-hero" style="margin-bottom:14px;">
+    <div class="renov-stat">
+      <div class="renov-stat-label">Historisk estimat jan–maj 2026</div>
+      <div class="renov-stat-value">~30.000<span style="font-size:1rem;font-weight:400;color:#a8a29e;margin-left:4px;">kr</span></div>
+      <div class="renov-stat-sub">Fra bankudtræk — ikke specificeret pr. post</div>
+    </div>
+    <div class="renov-stat">
+      <div class="renov-stat-label">Logget fra 2026-05-08</div>
+      <div class="renov-stat-value highlight" id="renov-logged-total">0<span style="font-size:1rem;font-weight:400;color:#a8a29e;margin-left:4px;">kr</span></div>
+      <div class="renov-stat-sub" id="renov-entry-count">0 poster</div>
+    </div>
+    <div class="renov-stat">
+      <div class="renov-stat-label">Estimeret samlet 2026</div>
+      <div class="renov-stat-value" id="renov-grand-total">~30.000<span style="font-size:1rem;font-weight:400;color:#a8a29e;margin-left:4px;">kr</span></div>
+      <div class="renov-stat-sub">Historisk + logget</div>
+    </div>
+  </div>
+
+  <!-- Add form -->
+  <div class="renov-form-card" style="margin-bottom:14px;">
+    <div class="renov-form-title">Tilføj udgift</div>
+    <div class="renov-form-grid">
+      <div class="renov-form-group">
+        <label class="renov-label">Dato</label>
+        <input class="renov-input" type="date" id="renov-date">
+      </div>
+      <div class="renov-form-group">
+        <label class="renov-label">Butik / leverandør</label>
+        <input class="renov-input" type="text" id="renov-store" placeholder="f.eks. Harald Nyborg" list="renov-stores-list">
+        <datalist id="renov-stores-list">
+          <option value="Harald Nyborg">
+          <option value="Jem&Fix">
+          <option value="Bauhaus">
+          <option value="STARK">
+          <option value="XL-BYG">
+          <option value="Silvan">
+          <option value="Biltema">
+        </datalist>
+      </div>
+      <div class="renov-form-group">
+        <label class="renov-label">Beskrivelse</label>
+        <input class="renov-input" type="text" id="renov-desc" placeholder="f.eks. Fugemasse bruseniche">
+      </div>
+      <div class="renov-form-group">
+        <label class="renov-label">Beløb (kr)</label>
+        <input class="renov-input" type="number" id="renov-amount" placeholder="0" min="0" step="1">
+      </div>
+      <div class="renov-form-group">
+        <label class="renov-label">Betalt fra</label>
+        <select class="renov-select" id="renov-account">
+          <option>Lønkonto</option>
+          <option>Budgetkonto</option>
+          <option>Dankort</option>
+          <option>MobilePay</option>
+        </select>
+      </div>
+      <button class="renov-btn" onclick="renovAddEntry()">Tilføj</button>
+    </div>
+  </div>
+
+  <!-- Log table + tasks -->
+  <div class="grid-2">
+
+    <div class="renov-table-card">
+      <div class="renov-table-header">
+        <span class="renov-table-title">Logbog — poster fra 2026-05-08</span>
+        <button class="renov-clear-btn" onclick="renovClearAll()">Ryd alle poster</button>
+      </div>
+      <div id="renov-table-wrap">
+        <div class="renov-empty" id="renov-empty-msg">Ingen poster endnu. Tilføj den første udgift ovenfor.</div>
+        <table class="renov-table" id="renov-table" style="display:none;">
+          <thead>
+            <tr>
+              <th>Dato</th>
+              <th>Butik</th>
+              <th>Beskrivelse</th>
+              <th>Konto</th>
+              <th style="text-align:right;">Beløb</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="renov-tbody"></tbody>
+          <tfoot>
+            <tr class="renov-total-row">
+              <td colspan="4">Total logget</td>
+              <td class="amount-cell" id="renov-table-total"></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="renov-tasks-card">
+      <div class="renov-tasks-title">Opgaveliste — prioriterede arbejder</div>
+
+      <div class="task-group-label">Akutte (sikkerhed)</div>
+      <div class="task-item">
+        <input type="checkbox" class="task-check" id="t1" onchange="renovSaveTasks()">
+        <label for="t1">
+          <span class="task-urgent">Fuge i bruseniche</span>
+          <span class="task-note">Vandskaderisiko — tilstandsrapport #5</span>
+        </label>
+      </div>
+      <div class="task-item">
+        <input type="checkbox" class="task-check" id="t2" onchange="renovSaveTasks()">
+        <label for="t2">
+          <span class="task-urgent">Redningsvindue værelse 1</span>
+          <span class="task-note">Brandsikkerhed — tilstandsrapport #7</span>
+        </label>
+      </div>
+      <div class="task-item">
+        <input type="checkbox" class="task-check" id="t3" onchange="renovSaveTasks()">
+        <label for="t3">
+          <span class="task-urgent">Elektriker — gennemgang af el-anmærkninger</span>
+          <span class="task-note">Stød- og brandrisiko</span>
+        </label>
+      </div>
+
+      <div class="task-group-label">Bør udbedres</div>
+      <div class="task-item">
+        <input type="checkbox" class="task-check" id="t4" onchange="renovSaveTasks()">
+        <label for="t4">
+          Elastisk fuge bryggersvindue mod øst
+          <span class="task-note">Tilstandsrapport #3</span>
+        </label>
+      </div>
+      <div class="task-item">
+        <input type="checkbox" class="task-check" id="t5" onchange="renovSaveTasks()">
+        <label for="t5">
+          Træsøjle carport — begyndende nedbrydning
+          <span class="task-note">Tilstandsrapport #9</span>
+        </label>
+      </div>
+
+      <div class="task-group-label">Administration</div>
+      <div class="task-item">
+        <input type="checkbox" class="task-check" id="t6" onchange="renovSaveTasks()">
+        <label for="t6">
+          Bekræft olietank slettet fra BBR
+        </label>
+      </div>
+      <div class="task-item">
+        <input type="checkbox" class="task-check" id="t7" onchange="renovSaveTasks()">
+        <label for="t7">
+          Indhent nedtrappingsplan — Hobro Varmeværk
+          <span class="task-note">Fjernvarme 2024, forhøjet afgift i 10 år</span>
+        </label>
+      </div>
+
+      <div id="renov-task-progress" style="margin-top:16px;padding:10px 12px;background:#fafafa;border-radius:10px;font-size:.7rem;color:#6b7280;">
+        Ingen opgaver afkrydset endnu.
+      </div>
+    </div>
+
+  </div>
+
+  <p class="footer-note">myPKA · Agerkrogen 8, Hobro · Beregnet på garanteret indkomst uden overtid · 2026-05-08</p>
+
+</div>
+
+<script>
+  /* ── Donut chart ── */
+  const data = [
+    { label: 'Budgetkonto (regninger)',  value: 14100, color: '#6366f1' },
+    { label: 'Madkonto',                 value: 5000,  color: '#10b981' },
+    { label: 'Variable kuverter',        value: 3100,  color: '#f59e0b' },
+    { label: 'Faste abonnementer',       value: 3100,  color: '#3b82f6' },
+    { label: 'Opsparing & investering',  value: 2675,  color: '#8b5cf6' },
+    { label: 'Hus-el (Vindstød)',        value: 200,   color: '#f97316' },
+    { label: 'Månedlig buffer',          value: 7025,  color: '#d1d5db' },
+  ];
+
+  const total = 39850;
+  const ctx = document.getElementById('donutChart').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: data.map(d => d.label),
+      datasets: [{
+        data: data.map(d => d.value),
+        backgroundColor: data.map(d => d.color),
+        borderWidth: 2,
+        borderColor: '#fff',
+        hoverOffset: 6,
+      }]
+    },
+    options: {
+      cutout: '70%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.toLocaleString('da-DK')} kr (${Math.round(ctx.parsed/total*100)}%)`
+          }
+        }
+      }
+    }
+  });
+
+  /* ── Legend ── */
+  const legend = document.getElementById('donutLegend');
+  data.forEach(d => {
+    const pct = Math.round(d.value / total * 100);
+    legend.insertAdjacentHTML('beforeend', `
+      <div class="legend-item">
+        <div class="legend-left">
+          <span class="legend-dot" style="background:${d.color}"></span>
+          <span>${d.label}</span>
+        </div>
+        <span class="legend-val">${d.value.toLocaleString('da-DK')} kr · ${pct}%</span>
+      </div>
+    `);
+  });
+</script>
+
+<script>
+  /* ── Renovation log — localStorage ── */
+  const RENOV_KEY  = 'agerkrogen_renov_log';
+  const TASK_KEY   = 'agerkrogen_renov_tasks';
+  const HIST_EST   = 30000;
+
+  function renovLoad() {
+    try { return JSON.parse(localStorage.getItem(RENOV_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function renovSave(entries) {
+    localStorage.setItem(RENOV_KEY, JSON.stringify(entries));
+  }
+
+  function renovFmt(n) {
+    return n.toLocaleString('da-DK') + ' kr';
+  }
+
+  function renovRender() {
+    const entries = renovLoad();
+    const total   = entries.reduce((s, e) => s + e.amount, 0);
+    const grand   = HIST_EST + total;
+
+    /* hero stats */
+    document.getElementById('renov-logged-total').innerHTML =
+      total.toLocaleString('da-DK') + '<span style="font-size:1rem;font-weight:400;color:#a8a29e;margin-left:4px;">kr</span>';
+    document.getElementById('renov-entry-count').textContent =
+      entries.length + (entries.length === 1 ? ' post' : ' poster');
+    document.getElementById('renov-grand-total').innerHTML =
+      '~' + grand.toLocaleString('da-DK') + '<span style="font-size:1rem;font-weight:400;color:#a8a29e;margin-left:4px;">kr</span>';
+
+    /* table */
+    const tbody  = document.getElementById('renov-tbody');
+    const table  = document.getElementById('renov-table');
+    const empty  = document.getElementById('renov-empty-msg');
+    const ttotal = document.getElementById('renov-table-total');
+
+    tbody.innerHTML = '';
+
+    if (entries.length === 0) {
+      table.style.display  = 'none';
+      empty.style.display  = 'block';
+    } else {
+      table.style.display  = '';
+      empty.style.display  = 'none';
+
+      /* sort newest first */
+      [...entries].sort((a, b) => b.date.localeCompare(a.date))
+        .forEach((e, i) => {
+          const origIdx = entries.findIndex(x => x.id === e.id);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${e.date}</td>
+            <td>${e.store}</td>
+            <td>${e.desc}</td>
+            <td><span class="konto-badge">${e.account}</span></td>
+            <td class="amount-cell">${renovFmt(e.amount)}</td>
+            <td><button class="del-btn" onclick="renovDelete('${e.id}')" title="Slet">✕</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      ttotal.textContent = renovFmt(total);
+    }
+  }
+
+  function renovAddEntry() {
+    const date    = document.getElementById('renov-date').value;
+    const store   = document.getElementById('renov-store').value.trim();
+    const desc    = document.getElementById('renov-desc').value.trim();
+    const amount  = parseInt(document.getElementById('renov-amount').value, 10);
+    const account = document.getElementById('renov-account').value;
+
+    if (!date || !store || !desc || !amount || amount <= 0) {
+      alert('Udfyld venligst alle felter med et gyldigt beløb.');
+      return;
+    }
+
+    const entries = renovLoad();
+    entries.push({ id: Date.now().toString(), date, store, desc, amount, account });
+    renovSave(entries);
+    renovRender();
+
+    /* reset form */
+    document.getElementById('renov-store').value  = '';
+    document.getElementById('renov-desc').value   = '';
+    document.getElementById('renov-amount').value = '';
+  }
+
+  function renovDelete(id) {
+    if (!confirm('Slet denne post?')) return;
+    renovSave(renovLoad().filter(e => e.id !== id));
+    renovRender();
+  }
+
+  function renovClearAll() {
+    if (!confirm('Ryd alle logposter? Dette kan ikke fortrydes.')) return;
+    renovSave([]);
+    renovRender();
+  }
+
+  /* ── Task checkboxes — localStorage ── */
+  function renovSaveTasks() {
+    const state = {};
+    document.querySelectorAll('.task-check').forEach(cb => {
+      state[cb.id] = cb.checked;
+    });
+    localStorage.setItem(TASK_KEY, JSON.stringify(state));
+    renovUpdateTaskProgress();
+  }
+
+  function renovLoadTasks() {
+    try {
+      const state = JSON.parse(localStorage.getItem(TASK_KEY)) || {};
+      document.querySelectorAll('.task-check').forEach(cb => {
+        if (state[cb.id] !== undefined) cb.checked = state[cb.id];
+      });
+    } catch {}
+    renovUpdateTaskProgress();
+  }
+
+  function renovUpdateTaskProgress() {
+    const all     = document.querySelectorAll('.task-check');
+    const done    = [...all].filter(c => c.checked).length;
+    const pct     = Math.round(done / all.length * 100);
+    const el      = document.getElementById('renov-task-progress');
+    const color   = pct === 100 ? '#059669' : pct >= 50 ? '#d97706' : '#6b7280';
+    el.style.color = color;
+    el.innerHTML = done === 0
+      ? 'Ingen opgaver afkrydset endnu.'
+      : `<strong>${done} af ${all.length}</strong> opgaver færdige (${pct}%)`;
+  }
+
+  /* ── Set default date to today ── */
+  document.getElementById('renov-date').value = new Date().toISOString().slice(0, 10);
+
+  /* ── Init ── */
+  renovRender();
+  renovLoadTasks();
+</script>
+</body>
+</html>

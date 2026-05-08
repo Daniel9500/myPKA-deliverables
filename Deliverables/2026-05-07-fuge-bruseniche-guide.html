@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fugeguide — Bruseniche, Agerkrogen 8</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:    #dc2626;
+      --amber:  #d97706;
+      --green:  #16a34a;
+      --blue:   #1d4ed8;
+      --slate:  #1e293b;
+      --muted:  #64748b;
+      --border: #e2e8f0;
+      --bg:     #f8fafc;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--slate);
+      background: var(--bg);
+      padding: 32px 24px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ─────────────────────────────── */
+    header {
+      border-bottom: 3px solid var(--slate);
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+    }
+    header .label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--slate);
+      line-height: 1.2;
+    }
+    header .sub {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ── Alert banner ────────────────────────── */
+    .alert {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: #fef2f2;
+      border: 1.5px solid #fca5a5;
+      border-left: 5px solid var(--red);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 28px;
+    }
+    .alert-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .alert-body strong { color: var(--red); font-size: 13px; display: block; margin-bottom: 3px; }
+    .alert-body p { font-size: 13px; color: #7f1d1d; }
+
+    /* ── Section headings ────────────────────── */
+    h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--slate);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2 .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--slate);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    section { margin-bottom: 32px; }
+
+    /* ── Decision box ────────────────────────── */
+    .decision-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .decision-card {
+      border-radius: 8px;
+      padding: 14px 16px;
+      border: 1.5px solid;
+    }
+    .decision-card.ok  { background: #f0fdf4; border-color: #86efac; }
+    .decision-card.stop{ background: #fef2f2; border-color: #fca5a5; }
+    .decision-card .card-title {
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .decision-card.ok   .card-title { color: var(--green); }
+    .decision-card.stop .card-title { color: var(--red); }
+    .decision-card ul { padding-left: 16px; font-size: 13px; }
+    .decision-card ul li { margin-bottom: 4px; }
+
+    /* ── Step cards ──────────────────────────── */
+    .step-list { display: flex; flex-direction: column; gap: 10px; }
+    .step-card {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .step-card .step-head {
+      font-weight: 600;
+      font-size: 13.5px;
+      margin-bottom: 6px;
+      color: var(--slate);
+    }
+    .step-card p, .step-card ul { font-size: 13px; color: #334155; }
+    .step-card ul { padding-left: 16px; }
+    .step-card ul li { margin-bottom: 3px; }
+    .step-card .tip {
+      margin-top: 8px;
+      font-size: 12px;
+      background: #f1f5f9;
+      border-radius: 5px;
+      padding: 7px 10px;
+      color: var(--muted);
+    }
+
+    /* ── Materials table ─────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      background: var(--slate);
+      color: #fff;
+      text-align: left;
+      padding: 9px 12px;
+      font-weight: 600;
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f8fafc; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .tag-must  { background: #fee2e2; color: var(--red); }
+    .tag-good  { background: #fef9c3; color: #92400e; }
+    .tag-tool  { background: #e0e7ff; color: var(--blue); }
+
+    /* ── Mistakes grid ───────────────────────── */
+    .mistake-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .mistake-card {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .mistake-card .m-title {
+      font-weight: 600;
+      font-size: 12.5px;
+      color: var(--red);
+      margin-bottom: 4px;
+    }
+    .mistake-card p { font-size: 12.5px; color: #475569; }
+
+    /* ── Checklist ───────────────────────────── */
+    .checklist { list-style: none; }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .checklist .box {
+      width: 18px; height: 18px;
+      border: 2px solid #94a3b8;
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── Footer ──────────────────────────────── */
+    footer {
+      margin-top: 36px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ── Print ───────────────────────────────── */
+    @media print {
+      body { background: #fff; padding: 20px; }
+      .decision-grid, .mistake-grid { break-inside: avoid; }
+      .step-card { break-inside: avoid; }
+      section { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="label">myPKA · Agerkrogen 8, 9500 Hobro · Husrenovering</div>
+  <h1>Fugeguide — Bruseniche</h1>
+  <div class="sub">Tilstandsrapport #5 (RØD) · Oprettet 2026-05-07</div>
+</header>
+
+<!-- Alert -->
+<div class="alert">
+  <div class="alert-icon">⚠️</div>
+  <div class="alert-body">
+    <strong>Tjek for eksisterende vandskade FØR du går i gang</strong>
+    <p>Bank forsigtigt på fliserne i brusenichen. Hule lyde, løse fliser eller misfarvning bag fliserne betyder stop — tilkald en badeværelsesspecialist. Huset er fra 1973 og kan mangle en moderne fugtspærre.</p>
+  </div>
+</div>
+
+<!-- 0: DIY eller fagmand -->
+<section>
+  <h2><span class="step-badge">?</span>DIY eller fagmand?</h2>
+  <div class="decision-grid">
+    <div class="decision-card ok">
+      <div class="card-title">✅ Fortsæt selv</div>
+      <ul>
+        <li>Fliser lyder massive ved bankning</li>
+        <li>Alle fliser sidder fast</li>
+        <li>Ingen misfarvning eller skimmel</li>
+        <li>Gulvet er fast og stabilt</li>
+      </ul>
+    </div>
+    <div class="decision-card stop">
+      <div class="card-title">🛑 Stop — ring til fagmand</div>
+      <ul>
+        <li>Hule lyde ved bankning</li>
+        <li>Løse eller revnede fliser</li>
+        <li>Synlig skimmel / misfarvning</li>
+        <li>Blødt eller gyngende gulv</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Materialer -->
+<section>
+  <h2><span class="step-badge" style="background:#d97706">🛒</span>Indkøbsliste</h2>
+  <table>
+    <thead>
+      <tr><th>Produkt</th><th>Eksempel / type</th><th>Vigtighed</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Sanitetssilikone</strong><br>med fungicid (anti-svamp)</td>
+        <td>Soudal Silirub 2 · Würth Sanitet Silikone<br><em>Hvid eller transparent</em></td>
+        <td><span class="tag tag-must">SKAL</span></td>
+      </tr>
+      <tr>
+        <td><strong>Fugepistol</strong></td>
+        <td>Skelettype — billigst og tilstrækkeligt</td>
+        <td><span class="tag tag-must">SKAL</span></td>
+      </tr>
+      <tr>
+        <td><strong>Isopropanol 70%+</strong></td>
+        <td>Apotek eller byggemarked</td>
+        <td><span class="tag tag-must">SKAL</span></td>
+      </tr>
+      <tr>
+        <td><strong>Maleringstape (gul)</strong></td>
+        <td>Standart malertape 19–25 mm</td>
+        <td><span class="tag tag-must">SKAL</span></td>
+      </tr>
+      <tr>
+        <td><strong>Fugeskraber</strong></td>
+        <td>Manuel fugeskraber eller oscillerende multiværktøj med fugeskraberblad</td>
+        <td><span class="tag tag-must">SKAL</span></td>
+      </tr>
+      <tr>
+        <td><strong>Smal spatel</strong></td>
+        <td>Til at fjerne restsilikon</td>
+        <td><span class="tag tag-good">GOD IDÉ</span></td>
+      </tr>
+      <tr>
+        <td><strong>Fugejern / plastikjern</strong></td>
+        <td>Eller en fugtet finger (sæbevand)</td>
+        <td><span class="tag tag-tool">VÆRKTØJ</span></td>
+      </tr>
+      <tr>
+        <td><strong>Lille skål sæbevand</strong></td>
+        <td>Opvaskemiddel + vand</td>
+        <td><span class="tag tag-tool">VÆRKTØJ</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Trin -->
+<section>
+  <h2><span class="step-badge">1</span>Fjern gammel fuge</h2>
+  <div class="step-list">
+    <div class="step-card">
+      <div class="step-head">Skær langs begge flisekanter</div>
+      <p>Brug en fugeskraber eller et oscillerende multiværktøj med fugeskraberblad. Kør langs silikonfugen langs begge kanter — top og bund.</p>
+      <div class="tip">💡 Brug aldrig stanleyknivsblad ukontrolleret — risiko for ridser i fliserne.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-head">Træk silikonen ud</div>
+      <p>Når kanterne er skåret fri, tag fat i enden og træk silikonstrengen ud i ét stykke hvis muligt.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-head">Skrab rester af</div>
+      <p>Brug en smal spatel til at fjerne al restsilikonemasse. Overfladen skal være helt ren — gammel silikon hæfter ikke på ny silikon.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="step-badge">2</span>Rengør og affedt</h2>
+  <div class="step-list">
+    <div class="step-card">
+      <div class="step-head">Affedt med isopropanol</div>
+      <p>Fugt en ren klud med isopropanol (min. 70%) og tør grundigt langs hele fugefladen. Fjern sæberester, kalk og al fedtfilm.</p>
+      <div class="tip">💡 Brug to klude: første til rengøring, anden til tørring — ellers smøres snavset rundt.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="step-badge">3</span>Tør grundigt — mindst 24–48 timer</h2>
+  <div class="step-list">
+    <div class="step-card">
+      <div class="step-head">Lad brusekabinen tørre fuldstændigt</div>
+      <p>Dette er det vigtigste trin. Åbn vindue eller tænd for emhætten. Ny silikone hæfter <strong>ikke</strong> på en fugtig flade og vil slippe inden for måneder.</p>
+      <div class="tip">💡 Brug helst 2 fulde dage. Brus ikke i mellemtiden.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="step-badge">4</span>Sæt maleringstape</h2>
+  <div class="step-list">
+    <div class="step-card">
+      <div class="step-head">Tape langs begge flisekanter</div>
+      <p>Placér tape parallelt med fugen — ca. 2–3 mm fra kanten. Tape giver et skarpt, professionelt resultat og sparer rengøring.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="step-badge">5</span>Påfør silikone</h2>
+  <div class="step-list">
+    <div class="step-card">
+      <div class="step-head">Klip patron og monter i pistol</div>
+      <p>Klip patronens spids af i 45° vinkel — hul svarende til fugebredden (ca. 4–6 mm). Stik en tyk søm igennem indvendig membran.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-head">Kør ét sammenhængende strøg</div>
+      <p>Hold pistolen i ca. 45° mod fugen. Kør langs hele fugens længde i ét træk uden at stoppe. Pres jævnt.</p>
+      <div class="tip">💡 Øv på et stykke papir først for at mærke pistolens flow.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-head">Glat fuge med fugtig finger</div>
+      <p>Dyp fingerspidsen i sæbevand. Kør én blød, jævn bevægelse langs figen for at trykke silikonen ind og give en fin konkav form.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-head">Fjern tape STRAKS</div>
+      <p>Fjern begge strimler maleringstape umiddelbart efter glatning — inden silikonen begynder at sætte sig. Træk i 45° vinkel væk fra figen.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="step-badge">6</span>Hærdetid</h2>
+  <div class="step-list">
+    <div class="step-card">
+      <div class="step-head">Brus IKKE i mindst 24 timer</div>
+      <p>Følg producentens anvisning på patronen — typisk 24 timer. Silikonen ser tør ud på overfladen men er ikke hærdet igennem. Vand i hærdetiden ødelægger hæftningen.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Fejl -->
+<section>
+  <h2><span class="step-badge" style="background:#dc2626">!</span>Undgå disse fejl</h2>
+  <div class="mistake-grid">
+    <div class="mistake-card">
+      <div class="m-title">Fuge på fugtig flade</div>
+      <p>Silikonen hæfter ikke og slipper inden for uger. Vent altid 24–48 timer.</p>
+    </div>
+    <div class="mistake-card">
+      <div class="m-title">Gammel silikon som underlag</div>
+      <p>Ny hæfter ikke på gammel. Fjern ALT inden du starter.</p>
+    </div>
+    <div class="mistake-card">
+      <div class="m-title">Stoppe midt i strøget</div>
+      <p>Giver et tykt knæk i fugen. Kør hele strækningen i ét træk.</p>
+    </div>
+    <div class="mistake-card">
+      <div class="m-title">Alm. silikone (ikke sanitær)</div>
+      <p>Mangler fungicid → sort skimmel inden for måneder i et baderum.</p>
+    </div>
+    <div class="mistake-card">
+      <div class="m-title">Tape glemt / fjernet for sent</div>
+      <p>Fjernes tape efter silikonen er sat, rives figen i stykker.</p>
+    </div>
+    <div class="mistake-card">
+      <div class="m-title">Bruseren tændt for tidligt</div>
+      <p>Vand ødelægger den ufærdige hæftning. Vent 24 timer minimum.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Tjekliste -->
+<section>
+  <h2><span class="step-badge" style="background:#16a34a">✓</span>Arbejdstjekliste</h2>
+  <ul class="checklist">
+    <li><span class="box"></span>Banket på fliser — ingen hule lyde, ingen løse fliser</li>
+    <li><span class="box"></span>Indkøb klaret (silikone med fungicid, fugepistol, isopropanol, tape, skraber)</li>
+    <li><span class="box"></span>Gammel silikone fjernet fuldstændigt</li>
+    <li><span class="box"></span>Flader affedtet med isopropanol</li>
+    <li><span class="box"></span>Tørretid overholdt (24–48 timer)</li>
+    <li><span class="box"></span>Maleringstape sat langs begge kanter</li>
+    <li><span class="box"></span>Silikone påført i ét sammenhængende strøg</li>
+    <li><span class="box"></span>Fuge glattet med fugtig finger</li>
+    <li><span class="box"></span>Tape fjernet straks efter glatning</li>
+    <li><span class="box"></span>Brusekabinen ikke brugt i 24 timer</li>
+  </ul>
+</section>
+
+<footer>
+  <span>Agerkrogen 8, 9500 Hobro · Tilstandsrapport #5 (RØD)</span>
+  <span>myPKA · 2026-05-07</span>
+</footer>
+
+</body>
+</html>

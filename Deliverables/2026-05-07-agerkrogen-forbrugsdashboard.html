@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agerkrogen 8 — Forbrug</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #f0f2f5;
+      color: #1c1c2e;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 20px 32px;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .site-header h1 { font-size: 1.2rem; font-weight: 700; }
+    .site-header p  { font-size: 0.8rem; opacity: 0.55; }
+
+    /* ── Layout ── */
+    .container { max-width: 980px; margin: 0 auto; padding: 28px 16px 48px; }
+
+    /* ── Summary cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      border-top: 4px solid transparent;
+    }
+    .card.fjernvarme { border-top-color: #e0472b; }
+    .card.el         { border-top-color: #d97706; }
+    .card.vand       { border-top-color: #2563eb; }
+
+    .card-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+      margin-bottom: 10px;
+    }
+    .card.fjernvarme .card-label { color: #e0472b; }
+    .card.el         .card-label { color: #d97706; }
+    .card.vand       .card-label { color: #2563eb; }
+
+    .card-value { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+    .card-unit  { font-size: 0.8rem; color: #9ca3af; margin-left: 4px; font-weight: 400; }
+
+    .card-foot {
+      margin-top: 12px;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+    }
+    .card-cons { font-weight: 600; color: #374151; }
+
+    /* ── Section ── */
+    .section {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #374151;
+    }
+
+    /* ── Form ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 180px 150px 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: #1c1c2e;
+      background: #fafafa;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #6366f1;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+    }
+
+    .btn-primary {
+      padding: 9px 22px;
+      background: #1c1c2e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s;
+    }
+    .btn-primary:hover { background: #2d2d4e; }
+
+    /* ── Filters ── */
+    .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 5px 14px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: #6b7280;
+      transition: all .15s;
+    }
+    .filter-btn:hover { border-color: #9ca3af; }
+    .filter-btn.active { background: #1c1c2e; color: #fff; border-color: #1c1c2e; }
+
+    /* ── Table ── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead th {
+      text-align: left;
+      padding: 6px 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    tbody td { padding: 10px 12px; border-bottom: 1px solid #f9fafb; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #fafafa; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-fjernvarme { background: #fef2f2; color: #e0472b; }
+    .badge-el         { background: #fffbeb; color: #d97706; }
+    .badge-vand       { background: #eff6ff; color: #2563eb; }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: #d1d5db;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      font-size: 1rem;
+      line-height: 1;
+      transition: color .15s, background .15s;
+    }
+    .del-btn:hover { color: #ef4444; background: #fef2f2; }
+
+    .empty-msg {
+      text-align: center;
+      padding: 36px;
+      color: #9ca3af;
+      font-size: 0.875rem;
+    }
+
+    .cons-pos { color: #059669; font-weight: 600; }
+    .cons-neg { color: #ef4444; font-weight: 600; }
+
+    /* ── Price settings ── */
+    .price-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+    .price-saved-msg {
+      font-size: 0.75rem;
+      color: #059669;
+      margin-top: 10px;
+      min-height: 1em;
+      font-weight: 600;
+    }
+
+    /* ── Section header with action ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .section-header .section-title { margin-bottom: 0; }
+
+    .btn-secondary {
+      padding: 6px 16px;
+      background: #fff;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color .15s, background .15s;
+    }
+    .btn-secondary:hover { border-color: #9ca3af; background: #f9fafb; }
+
+    /* ── Sync ── */
+    .sync-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+      margin-left: auto;
+      align-self: center;
+    }
+    .sync-ok  { background: #d1fae5; color: #065f46; }
+    .sync-ing { background: #fef3c7; color: #92400e; }
+    .sync-err { background: #fef2f2; color: #991b1b; }
+    .sync-off { background: #f3f4f6; color: #6b7280; }
+
+    .sync-row {
+      display: grid;
+      grid-template-columns: 2fr 2fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+    .sync-hint {
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      color: #6b7280;
+      line-height: 1.7;
+    }
+    .sync-hint code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.68rem;
+      color: #374151;
+      background: #f1f5f9;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    @media (max-width: 680px) {
+      .sync-row { grid-template-columns: 1fr 1fr; }
+      .sync-row > :last-child { grid-column: 1 / -1; }
+    }
+
+    /* ── Chart ── */
+    .chart-wrap {
+      position: relative;
+      height: 240px;
+    }
+    .chart-empty {
+      text-align: center;
+      padding: 60px 0;
+      color: #9ca3af;
+      font-size: 0.875rem;
+    }
+
+    @media (max-width: 680px) {
+      .cards { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr 1fr; }
+      .form-row > :last-child { grid-column: 1 / -1; }
+      .price-row { grid-template-columns: 1fr 1fr; }
+      .price-row > :last-child { grid-column: 1 / -1; }
+    }
+    @media (max-width: 400px) {
+      .form-row { grid-template-columns: 1fr; }
+      .price-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Agerkrogen 8, 9500 Hobro</h1>
+  <p>Forbrugsoverblik</p>
+  <span id="sync-status" class="sync-badge sync-off">Kun lokal</span>
+</header>
+
+<div class="container">
+
+  <!-- Summary cards -->
+  <div class="cards">
+    <div class="card fjernvarme">
+      <div class="card-label">Fjernvarme</div>
+      <div>
+        <span class="card-value" id="val-fjernvarme">—</span>
+        <span class="card-unit">kWh</span>
+      </div>
+      <div class="card-foot">
+        <span id="date-fjernvarme">Ingen aflæsninger</span>
+        <span class="card-cons" id="cons-fjernvarme"></span>
+      </div>
+    </div>
+
+    <div class="card el">
+      <div class="card-label">El</div>
+      <div>
+        <span class="card-value" id="val-el">—</span>
+        <span class="card-unit">kWh</span>
+      </div>
+      <div class="card-foot">
+        <span id="date-el">Ingen aflæsninger</span>
+        <span class="card-cons" id="cons-el"></span>
+      </div>
+    </div>
+
+    <div class="card vand">
+      <div class="card-label">Vand</div>
+      <div>
+        <span class="card-value" id="val-vand">—</span>
+        <span class="card-unit">m³</span>
+      </div>
+      <div class="card-foot">
+        <span id="date-vand">Ingen aflæsninger</span>
+        <span class="card-cons" id="cons-vand"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="section">
+    <div class="section-title">Forbrug over tid</div>
+    <div class="filters" id="chart-filters">
+      <button class="filter-btn active" onclick="setChartType('fjernvarme', this)">Fjernvarme</button>
+      <button class="filter-btn" onclick="setChartType('el', this)">El</button>
+      <button class="filter-btn" onclick="setChartType('vand', this)">Vand</button>
+    </div>
+    <div class="chart-wrap" id="chart-wrap">
+      <canvas id="cons-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Price settings -->
+  <div class="section">
+    <div class="section-title">Prissætning</div>
+    <div class="price-row">
+      <div>
+        <label for="price-fjernvarme">Fjernvarme (kr./kWh)</label>
+        <input type="number" id="price-fjernvarme" step="0.01" min="0" placeholder="0,00">
+      </div>
+      <div>
+        <label for="price-el">El (kr./kWh)</label>
+        <input type="number" id="price-el" step="0.01" min="0" placeholder="0,00">
+      </div>
+      <div>
+        <label for="price-vand">Vand (kr./m³)</label>
+        <input type="number" id="price-vand" step="0.01" min="0" placeholder="0,00">
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button type="button" class="btn-primary" onclick="savePrices()">Gem priser</button>
+      </div>
+    </div>
+    <div class="price-saved-msg" id="price-saved-msg"></div>
+  </div>
+
+  <!-- Supabase sync -->
+  <div class="section">
+    <div class="section-title">Synkronisering</div>
+    <div class="sync-row">
+      <div>
+        <label for="sb-url">Supabase Project URL</label>
+        <input type="url" id="sb-url" placeholder="https://xxxx.supabase.co">
+      </div>
+      <div>
+        <label for="sb-key">Anon key</label>
+        <input type="password" id="sb-key" placeholder="eyJ…">
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button type="button" class="btn-primary" onclick="saveSupabaseConfig()">Gem &amp; synk</button>
+      </div>
+    </div>
+    <div class="sync-hint">
+      <strong>Opret tabeller i Supabase SQL Editor:</strong><br>
+      <code>create table readings (id uuid primary key, type text not null, date date not null, value numeric not null, created_at timestamptz default now());</code><br>
+      <code>create table prices (singleton int primary key default 1, fjernvarme numeric default 0, el numeric default 0, vand numeric default 0, updated_at timestamptz default now());</code><br>
+      <code>create policy "allow all" on readings for all using (true) with check (true);</code><br>
+      <code>create policy "allow all" on prices  for all using (true) with check (true);</code><br>
+      Aktiver RLS på begge tabeller i Table Editor, eller kør: <code>alter table readings enable row level security; alter table prices enable row level security;</code>
+    </div>
+  </div>
+
+  <!-- Add reading -->
+  <div class="section">
+    <div class="section-title">Tilføj aflæsning</div>
+    <form id="reading-form" onsubmit="addReading(event)">
+      <div class="form-row">
+        <div>
+          <label for="inp-type">Type</label>
+          <select id="inp-type" required>
+            <option value="fjernvarme">Fjernvarme (kWh)</option>
+            <option value="el">El (kWh)</option>
+            <option value="vand">Vand (m³)</option>
+          </select>
+        </div>
+        <div>
+          <label for="inp-date">Dato</label>
+          <input type="date" id="inp-date" required>
+        </div>
+        <div>
+          <label for="inp-value">Målerstand</label>
+          <input type="number" id="inp-value" step="0.001" min="0" placeholder="0.000" required>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button type="submit" class="btn-primary">Tilføj</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- History -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Historik</div>
+      <button type="button" class="btn-secondary" onclick="exportCSV()">&#8595; Eksportér CSV</button>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all', this)">Alle</button>
+      <button class="filter-btn" onclick="setFilter('fjernvarme', this)">Fjernvarme</button>
+      <button class="filter-btn" onclick="setFilter('el', this)">El</button>
+      <button class="filter-btn" onclick="setFilter('vand', this)">Vand</button>
+    </div>
+    <div id="history-wrap"></div>
+  </div>
+
+</div>
+
+<script>
+  const STORAGE_KEY  = 'agerkrogen8_readings_v1';
+  const PRICE_KEY    = 'agerkrogen8_prices_v1';
+  const SUPABASE_KEY = 'agerkrogen8_supabase_v1';
+  const UNITS  = { fjernvarme: 'kWh', el: 'kWh', vand: 'm³' };
+  const LABELS = { fjernvarme: 'Fjernvarme', el: 'El', vand: 'Vand' };
+  let activeFilter = 'all';
+
+  const load       = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; } };
+  const save       = d  => localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+  const loadPrices = () => { try { return JSON.parse(localStorage.getItem(PRICE_KEY))   || {}; } catch { return {}; } };
+
+  // ── Supabase helpers ──────────────────────────────────────────
+  const loadSbCfg = () => { try { return JSON.parse(localStorage.getItem(SUPABASE_KEY)) || {}; } catch { return {}; } };
+
+  function getSb() {
+    const { url, key } = loadSbCfg();
+    if (!url || !key) return null;
+    return supabase.createClient(url, key);
+  }
+
+  function setSyncStatus(state) {
+    const el = document.getElementById('sync-status');
+    if (!el) return;
+    const map = {
+      ok:      ['Synket',    'sync-ok'],
+      syncing: ['Synker…',   'sync-ing'],
+      error:   ['Sync fejl', 'sync-err'],
+      offline: ['Kun lokal', 'sync-off'],
+    };
+    const [text, cls] = map[state] || map.offline;
+    el.textContent = text;
+    el.className   = `sync-badge ${cls}`;
+  }
+
+  async function saveSupabaseConfig() {
+    const url = document.getElementById('sb-url').value.trim();
+    const key = document.getElementById('sb-key').value.trim();
+    if (!url || !key) { alert('Udfyld både URL og anon-nøgle.'); return; }
+    localStorage.setItem(SUPABASE_KEY, JSON.stringify({ url, key }));
+    await syncFromSupabase();
+  }
+
+  function initSupabaseInputs() {
+    const { url, key } = loadSbCfg();
+    if (url) document.getElementById('sb-url').value = url;
+    if (key) document.getElementById('sb-key').value = key;
+  }
+
+  async function syncFromSupabase() {
+    const sb = getSb();
+    if (!sb) { setSyncStatus('offline'); return; }
+    setSyncStatus('syncing');
+    try {
+      const local = load();
+
+      // Upload any local readings not yet on remote
+      const { data: remoteIds, error: e1 } = await sb.from('readings').select('id');
+      if (e1) throw e1;
+      const remoteIdSet = new Set(remoteIds.map(r => r.id));
+      const toUpload = local.filter(r => !remoteIdSet.has(r.id));
+      if (toUpload.length) {
+        const { error: e2 } = await sb.from('readings').insert(
+          toUpload.map(r => ({ id: r.id, type: r.type, date: r.date, value: parseFloat(r.value) }))
+        );
+        if (e2) throw e2;
+      }
+
+      // Fetch authoritative remote dataset
+      const { data: allRemote, error: e3 } = await sb.from('readings').select('*');
+      if (e3) throw e3;
+      save(allRemote.map(r => ({ id: r.id, type: r.type, date: r.date, value: String(r.value) })));
+
+      // Sync prices
+      const { data: rp, error: e4 } = await sb.from('prices').select('*').limit(1);
+      if (!e4 && rp?.length) {
+        localStorage.setItem(PRICE_KEY, JSON.stringify({ fjernvarme: rp[0].fjernvarme, el: rp[0].el, vand: rp[0].vand }));
+        initPriceInputs();
+      }
+
+      refresh(load());
+      setSyncStatus('ok');
+    } catch (err) {
+      console.error('Sync error:', err);
+      setSyncStatus('error');
+    }
+  }
+
+  async function pushReading(r) {
+    const sb = getSb(); if (!sb) return;
+    await sb.from('readings').insert({ id: r.id, type: r.type, date: r.date, value: parseFloat(r.value) });
+    setSyncStatus('ok');
+  }
+
+  async function removeReading(id) {
+    const sb = getSb(); if (!sb) return;
+    await sb.from('readings').delete().eq('id', id);
+    setSyncStatus('ok');
+  }
+
+  async function pushPrices(prices) {
+    const sb = getSb(); if (!sb) return;
+    await sb.from('prices').upsert({ singleton: 1, ...prices, updated_at: new Date().toISOString() });
+    setSyncStatus('ok');
+  }
+
+  async function savePrices() {
+    const prices = {
+      fjernvarme: parseFloat(document.getElementById('price-fjernvarme').value) || 0,
+      el:         parseFloat(document.getElementById('price-el').value)         || 0,
+      vand:       parseFloat(document.getElementById('price-vand').value)       || 0,
+    };
+    localStorage.setItem(PRICE_KEY, JSON.stringify(prices));
+    renderHistory(load());
+    const msg = document.getElementById('price-saved-msg');
+    msg.textContent = 'Priser gemt';
+    setTimeout(() => { msg.textContent = ''; }, 2500);
+    await pushPrices(prices);
+  }
+
+  function initPriceInputs() {
+    const p = loadPrices();
+    if (p.fjernvarme) document.getElementById('price-fjernvarme').value = p.fjernvarme;
+    if (p.el)         document.getElementById('price-el').value         = p.el;
+    if (p.vand)       document.getElementById('price-vand').value       = p.vand;
+  }
+  const fmtDate = s => { const [y,m,d] = s.split('-'); return `${d}.${m}.${y}`; };
+  const fmtNum  = (n, dec=2) => parseFloat(n).toLocaleString('da-DK', { minimumFractionDigits: 0, maximumFractionDigits: dec });
+
+  function sorted(data, type) {
+    return data.filter(r => r.type === type).sort((a,b) => a.date < b.date ? -1 : 1);
+  }
+
+  function prevReading(data, type, beforeDate) {
+    return sorted(data, type).filter(r => r.date < beforeDate).pop() || null;
+  }
+
+  function updateCards(data) {
+    ['fjernvarme','el','vand'].forEach(type => {
+      const s  = sorted(data, type);
+      const la = s[s.length - 1] || null;
+      const ve = document.getElementById(`val-${type}`);
+      const de = document.getElementById(`date-${type}`);
+      const ce = document.getElementById(`cons-${type}`);
+
+      if (!la) {
+        ve.textContent = '—';
+        de.textContent = 'Ingen aflæsninger';
+        ce.textContent = '';
+        return;
+      }
+
+      ve.textContent = fmtNum(la.value, 3);
+      de.textContent = fmtDate(la.date);
+
+      if (s.length >= 2) {
+        const delta = parseFloat(la.value) - parseFloat(s[s.length-2].value);
+        ce.textContent = `${delta >= 0 ? '+' : ''}${fmtNum(delta,3)} ${UNITS[type]}`;
+      } else {
+        ce.textContent = '';
+      }
+    });
+  }
+
+  function renderHistory(data) {
+    const wrap = document.getElementById('history-wrap');
+    const rows = (activeFilter === 'all' ? data : data.filter(r => r.type === activeFilter))
+                   .sort((a,b) => a.date < b.date ? 1 : -1);
+
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="empty-msg">Ingen aflæsninger endnu — tilføj din første ovenfor.</div>';
+      return;
+    }
+
+    const prices = loadPrices();
+    const trs = rows.map(r => {
+      const p = prevReading(data, r.type, r.date);
+      let cons = '—';
+      let cost = '—';
+      if (p) {
+        const d   = parseFloat(r.value) - parseFloat(p.value);
+        const cls = d >= 0 ? 'cons-pos' : 'cons-neg';
+        cons = `<span class="${cls}">${d >= 0 ? '+' : ''}${fmtNum(d,3)} ${UNITS[r.type]}</span>`;
+        const unitPrice = prices[r.type] || 0;
+        if (unitPrice > 0) {
+          const kr  = d * unitPrice;
+          const kcls = kr >= 0 ? 'cons-pos' : 'cons-neg';
+          cost = `<span class="${kcls}">${fmtNum(kr, 2)} kr.</span>`;
+        }
+      }
+      return `<tr>
+        <td>${fmtDate(r.date)}</td>
+        <td><span class="badge badge-${r.type}">${LABELS[r.type]}</span></td>
+        <td>${fmtNum(r.value,3)} ${UNITS[r.type]}</td>
+        <td>${cons}</td>
+        <td>${cost}</td>
+        <td><button class="del-btn" onclick="deleteReading('${r.id}')" title="Slet">&#x2715;</button></td>
+      </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `<table>
+      <thead><tr>
+        <th>Dato</th><th>Type</th><th>Målerstand</th>
+        <th>Forbrug siden forrige</th><th>Udgift</th><th></th>
+      </tr></thead>
+      <tbody>${trs}</tbody>
+    </table>`;
+  }
+
+  async function addReading(e) {
+    e.preventDefault();
+    const reading = {
+      id:    crypto.randomUUID(),
+      type:  document.getElementById('inp-type').value,
+      date:  document.getElementById('inp-date').value,
+      value: document.getElementById('inp-value').value,
+    };
+    const data = load();
+    data.push(reading);
+    save(data);
+    refresh(data);
+    e.target.reset();
+    setTodayDate();
+    await pushReading(reading);
+  }
+
+  async function deleteReading(id) {
+    if (!confirm('Slet denne aflæsning?')) return;
+    const data = load().filter(r => r.id !== id);
+    save(data);
+    refresh(data);
+    await removeReading(id);
+  }
+
+  function setFilter(f, btn) {
+    activeFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderHistory(load());
+  }
+
+  // ── Chart ──────────────────────────────────────────────────
+  let activeChartType = 'fjernvarme';
+  let chart = null;
+
+  const CHART_COLORS = {
+    fjernvarme: { bg: 'rgba(224,71,43,0.12)',  border: '#e0472b' },
+    el:         { bg: 'rgba(217,119,6,0.12)',   border: '#d97706' },
+    vand:       { bg: 'rgba(37,99,235,0.12)',   border: '#2563eb' },
+  };
+
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','Maj','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
+
+  function buildMonthlyData(data, type) {
+    const s = sorted(data, type);
+    const monthly = {};
+    s.forEach((r, i) => {
+      if (i === 0) return;
+      const prev = s[i - 1];
+      const cons = parseFloat(r.value) - parseFloat(prev.value);
+      const month = r.date.substring(0, 7);
+      monthly[month] = (monthly[month] || 0) + cons;
+    });
+    const months = Object.keys(monthly).sort();
+    return {
+      labels: months.map(m => {
+        const [y, mo] = m.split('-');
+        return `${MONTH_NAMES[parseInt(mo) - 1]} ${y.substring(2)}`;
+      }),
+      values: months.map(m => +monthly[m].toFixed(4)),
+    };
+  }
+
+  function setChartType(type, btn) {
+    activeChartType = type;
+    document.querySelectorAll('#chart-filters .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderChart(load());
+  }
+
+  function renderChart(data) {
+    const { labels, values } = buildMonthlyData(data, activeChartType);
+    const wrap = document.getElementById('chart-wrap');
+
+    if (chart) { chart.destroy(); chart = null; }
+
+    if (!labels.length) {
+      wrap.innerHTML = '<div class="chart-empty">Ingen data endnu — tilføj mindst to aflæsninger af samme type.</div>';
+      return;
+    }
+
+    if (!document.getElementById('cons-chart')) {
+      wrap.innerHTML = '<canvas id="cons-chart"></canvas>';
+    }
+
+    const colors = CHART_COLORS[activeChartType];
+    chart = new Chart(document.getElementById('cons-chart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: colors.bg,
+          borderColor: colors.border,
+          borderWidth: 2,
+          borderRadius: 6,
+          borderSkipped: false,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${fmtNum(ctx.raw, 3)} ${UNITS[activeChartType]}`,
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: '#f3f4f6' },
+            ticks: {
+              font: { size: 11 },
+              callback: v => `${fmtNum(v, 1)} ${UNITS[activeChartType]}`,
+            },
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 11 } },
+          },
+        },
+      },
+    });
+  }
+
+  function exportCSV() {
+    const data   = load();
+    const prices = loadPrices();
+    const rows   = (activeFilter === 'all' ? data : data.filter(r => r.type === activeFilter))
+                     .sort((a,b) => a.date < b.date ? 1 : -1);
+
+    if (!rows.length) { alert('Ingen aflæsninger at eksportere.'); return; }
+
+    const header = ['Dato','Type','Målerstand','Enhed','Forbrug siden forrige','Udgift (kr.)'];
+    const lines  = [header.join(';')];
+
+    rows.forEach(r => {
+      const p = prevReading(data, r.type, r.date);
+      let cons = '';
+      let cost = '';
+      if (p) {
+        const d = parseFloat(r.value) - parseFloat(p.value);
+        cons = d.toFixed(4).replace('.', ',');
+        const unitPrice = prices[r.type] || 0;
+        if (unitPrice > 0) cost = (d * unitPrice).toFixed(2).replace('.', ',');
+      }
+      lines.push([
+        fmtDate(r.date),
+        LABELS[r.type],
+        parseFloat(r.value).toFixed(4).replace('.', ','),
+        UNITS[r.type],
+        cons,
+        cost,
+      ].join(';'));
+    });
+
+    const bom  = '﻿';
+    const blob = new Blob([bom + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const suffix = activeFilter !== 'all' ? `-${activeFilter}` : '';
+    a.href     = url;
+    a.download = `agerkrogen8-forbrug${suffix}-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function refresh(data) { updateCards(data); renderHistory(data); renderChart(data); }
+
+  function setTodayDate() {
+    document.getElementById('inp-date').value = new Date().toISOString().split('T')[0];
+  }
+
+  setTodayDate();
+  initPriceInputs();
+  initSupabaseInputs();
+  refresh(load());
+  syncFromSupabase();
+</script>
+
+</body>
+</html>

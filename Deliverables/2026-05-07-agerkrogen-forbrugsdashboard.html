@@ -524,7 +524,7 @@
       <div class="section-title">Synkronisering</div>
       <div id="sync-cfg-banner" style="display:none">
         <span class="sync-cfg-label">Supabase konfigureret</span>
-        <button type="button" class="btn-link" onclick="toggleSyncConfig()">Rediger</button>
+        <button type="button" class="btn-link" id="sync-cfg-toggle" onclick="toggleSyncConfig()">Rediger</button>
       </div>
     </div>
     <div id="sync-config-panel" style="margin-top:12px">
@@ -715,7 +715,11 @@
 
   function setSyncConfigVisible(visible) {
     document.getElementById('sync-config-panel').style.display = visible ? '' : 'none';
-    document.getElementById('sync-cfg-banner').style.display  = visible ? 'none' : '';
+    const { url, key } = loadSbCfg();
+    const configured = !!(url && key);
+    document.getElementById('sync-cfg-banner').style.display = configured ? '' : 'none';
+    const btn = document.getElementById('sync-cfg-toggle');
+    if (btn) btn.textContent = visible ? 'Luk' : 'Rediger';
   }
 
   function toggleSyncConfig() {

@@ -289,6 +289,82 @@
       .sync-row > :last-child { grid-column: 1 / -1; }
     }
 
+    /* ── Auth overlay ── */
+    #auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    #auth-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 320px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.32);
+      text-align: center;
+    }
+    #auth-logo {
+      width: 48px; height: 48px;
+      background: #1a1a2e;
+      color: #fff;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    #auth-box h2 { font-size: 1.05rem; font-weight: 800; color: #1c1c2e; margin-bottom: 4px; }
+    #auth-box > p { font-size: 0.78rem; color: #9ca3af; margin-bottom: 24px; }
+    #auth-inputs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+    #auth-inputs input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      text-align: center;
+      background: #fafafa;
+    }
+    #auth-inputs input:focus {
+      outline: none;
+      border-color: #6366f1;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+    }
+    #auth-btn {
+      width: 100%;
+      padding: 11px;
+      background: #1c1c2e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    #auth-btn:hover { background: #2d2d4e; }
+    #auth-msg { margin-top: 10px; font-size: 0.75rem; color: #ef4444; min-height: 1.2em; font-weight: 500; }
+
+    .logout-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.6);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .logout-btn:hover { border-color: rgba(255,255,255,.5); color: #fff; }
+
     /* ── Chart ── */
     .chart-wrap {
       position: relative;
@@ -316,10 +392,29 @@
 </head>
 <body>
 
+<div id="auth-overlay" style="display:none">
+  <div id="auth-box">
+    <div id="auth-logo">A8</div>
+    <h2>Agerkrogen 8</h2>
+    <p>Forbrugsdashboard</p>
+    <div id="auth-inputs">
+      <input type="password" id="auth-pw" placeholder="Adgangskode"
+             autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')authSubmit()">
+      <input type="password" id="auth-pw2" placeholder="Bekræft adgangskode"
+             autocomplete="new-password" style="display:none"
+             onkeydown="if(event.key==='Enter')authSubmit()">
+    </div>
+    <button id="auth-btn" onclick="authSubmit()">Log ind</button>
+    <div id="auth-msg"></div>
+  </div>
+</div>
+
 <header class="site-header">
   <h1>Agerkrogen 8, 9500 Hobro</h1>
   <p>Forbrugsoverblik</p>
   <span id="sync-status" class="sync-badge sync-off">Kun lokal</span>
+  <button class="logout-btn" onclick="logout()">Log ud</button>
 </header>
 
 <div class="container">
@@ -477,6 +572,8 @@
   const STORAGE_KEY  = 'agerkrogen8_readings_v1';
   const PRICE_KEY    = 'agerkrogen8_prices_v1';
   const SUPABASE_KEY = 'agerkrogen8_supabase_v1';
+  const AUTH_KEY     = 'agerkrogen8_auth_v1';
+  const SESSION_KEY  = 'agerkrogen8_session_v1';
   const UNITS  = { fjernvarme: 'kWh', el: 'kWh', vand: 'm³' };
   const LABELS = { fjernvarme: 'Fjernvarme', el: 'El', vand: 'Vand' };
   let activeFilter = 'all';
@@ -484,6 +581,69 @@
   const load       = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; } };
   const save       = d  => localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
   const loadPrices = () => { try { return JSON.parse(localStorage.getItem(PRICE_KEY))   || {}; } catch { return {}; } };
+
+  // ── Auth ──────────────────────────────────────────────────────
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  function updateAuthMode() {
+    const hash = localStorage.getItem(AUTH_KEY);
+    const pw2  = document.getElementById('auth-pw2');
+    const btn  = document.getElementById('auth-btn');
+    const pw   = document.getElementById('auth-pw');
+    if (!hash) {
+      pw.placeholder    = 'Ny adgangskode';
+      pw2.style.display = '';
+      btn.textContent   = 'Opret adgangskode';
+    } else {
+      pw.placeholder    = 'Adgangskode';
+      pw2.style.display = 'none';
+      btn.textContent   = 'Log ind';
+    }
+    pw.value = ''; pw2.value = '';
+    document.getElementById('auth-msg').textContent = '';
+    setTimeout(() => pw.focus(), 50);
+  }
+
+  function showAuthOverlay() {
+    if (sessionStorage.getItem(SESSION_KEY) === '1') return;
+    document.getElementById('auth-overlay').style.display = 'flex';
+    updateAuthMode();
+  }
+
+  function logout() {
+    sessionStorage.removeItem(SESSION_KEY);
+    document.getElementById('auth-overlay').style.display = 'flex';
+    updateAuthMode();
+  }
+
+  async function authSubmit() {
+    const pw  = document.getElementById('auth-pw').value;
+    const msg = document.getElementById('auth-msg');
+    if (!pw) return;
+    const stored = localStorage.getItem(AUTH_KEY);
+    if (!stored) {
+      const pw2 = document.getElementById('auth-pw2').value;
+      if (pw.length < 6) { msg.textContent = 'Mindst 6 tegn'; return; }
+      if (pw !== pw2)    { msg.textContent = 'Adgangskoderne matcher ikke'; return; }
+      const hash = await sha256(pw);
+      localStorage.setItem(AUTH_KEY, hash);
+      await pushPasswordHash(hash);
+      sessionStorage.setItem(SESSION_KEY, '1');
+    } else {
+      const hash = await sha256(pw);
+      if (hash !== stored) { msg.textContent = 'Forkert adgangskode'; return; }
+      sessionStorage.setItem(SESSION_KEY, '1');
+    }
+    document.getElementById('auth-overlay').style.display = 'none';
+  }
+
+  async function pushPasswordHash(hash) {
+    const sb = getSb(); if (!sb) return;
+    await sb.from('prices').upsert({ singleton: 1, password_hash: hash, updated_at: new Date().toISOString() });
+  }
 
   // ── Supabase helpers ──────────────────────────────────────────
   const loadSbCfg = () => { try { return JSON.parse(localStorage.getItem(SUPABASE_KEY)) || {}; } catch { return {}; } };
@@ -554,6 +714,11 @@
       if (!e4 && rp?.length) {
         localStorage.setItem(PRICE_KEY, JSON.stringify({ fjernvarme: rp[0].fjernvarme, el: rp[0].el, vand: rp[0].vand }));
         initPriceInputs();
+        if (rp[0].password_hash) {
+          localStorage.setItem(AUTH_KEY, rp[0].password_hash);
+          const overlay = document.getElementById('auth-overlay');
+          if (overlay.style.display !== 'none') updateAuthMode();
+        }
       }
 
       refresh(load());
@@ -578,7 +743,10 @@
 
   async function pushPrices(prices) {
     const sb = getSb(); if (!sb) return;
-    await sb.from('prices').upsert({ singleton: 1, ...prices, updated_at: new Date().toISOString() });
+    const data = { singleton: 1, ...prices, updated_at: new Date().toISOString() };
+    const hash = localStorage.getItem(AUTH_KEY);
+    if (hash) data.password_hash = hash;
+    await sb.from('prices').upsert(data);
     setSyncStatus('ok');
   }
 
@@ -865,6 +1033,7 @@
   setTodayDate();
   initPriceInputs();
   initSupabaseInputs();
+  showAuthOverlay();
   refresh(load());
   syncFromSupabase();
 </script>
